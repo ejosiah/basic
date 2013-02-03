@@ -3,7 +3,7 @@ package com.jebhomenye.parser;
 import com.jebhomenye.parser.Token.TokenType;
 
 public class Expression {
-	private int Index;
+	private int index;
 	final private String value;
 	
 	public Expression(String value){
@@ -16,55 +16,54 @@ public class Expression {
 		}
 		
 		while(!isLastToken() && isWhiteSpace()){
-			++Index;
-			
-			if(isLastToken()){
-				return Token.END_OF_EXPRESSION;
+			index++;
+		}
+		
+		if(isLastToken()){
+			return Token.END_OF_EXPRESSION;
+		}else if(isOperator()){
+			return Token.getOperator(value.charAt(index++));
+		}else if(isDigit()){
+			String num = "";
+			while(!isOperator()){
+				num += value.charAt(index++);
+				if(isLastToken()) break;
 			}
-			
-			if(isDelimiter()){
-				return new Token(value.charAt(Index++), TokenType.OPERATOR);
-			}else if(isLetter()){
-				String letter = "";
-				while(!isDelimiter()){
-					letter += value.charAt(Index++);
-					if(isLastToken()) break;
-				}
-				return new Token(letter, TokenType.VARIABLE);
-			}else if (isDigit()){
-				String number = "";
-				while(!isDelimiter()){
-					number += value.charAt(Index++);
-					if(isLastToken()) break;
-				}
-				return new Token(number, TokenType.NUMBER);
+			return new Token(num, TokenType.NUMBER);
+		}else if(isLetter()){
+			String val = "";
+			while(!isOperator()){
+				val += value.charAt(index++);
+				if(isLastToken()) break;
 			}
+			return new Token(val, TokenType.VARIABLE);
 		}
 		return Token.END_OF_EXPRESSION;
 	}
 	
 	
 	private boolean isDigit() {
-		return Character.isDigit(value.charAt(Index));
+		return Character.isDigit(value.charAt(index));
 	}
 
 	private boolean isLastToken(){
-		return Index == value.length();
+		return index >= value.length();
 	}
 	
 	private boolean isWhiteSpace(){
-		return Character.isWhitespace(value.charAt(Index));
+		char val = value.charAt(index);
+		return Character.isWhitespace(val);
 	}
 	
-	private boolean isDelimiter(){
-		return false;
+	private boolean isOperator(){
+		return Token.isOperator(value.charAt(index));
 	}
 	
 	private boolean isLetter(){
-		return Character.isLetter(value.charAt(Index));
+		return Character.isLetter(value.charAt(index));
 	}
 	
 	public void reset(){
-		Index = 0;
+		index = 0;
 	}
 }
