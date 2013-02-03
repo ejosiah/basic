@@ -1,6 +1,8 @@
 package com.jebhomenye.parser;
 
-import com.jebhomenye.parser.Token.TokenType;
+
+import static com.jebhomenye.parser.Token.TokenType.*;
+import static com.jebhomenye.parser.Token.*;
 
 public class Expression {
 	private int index;
@@ -12,36 +14,35 @@ public class Expression {
 	
 	public Token getNextToken(){
 		if(isLastToken()){
-			return Token.END_OF_EXPRESSION;
+			return END_OF_EXPRESSION;
 		}
-		
-		while(!isLastToken() && isWhiteSpace()){
-			index++;
+		if(!isLastToken() && isWhiteSpace()){
+			nextChar();
+			return getNextToken();
 		}
-		
-		if(isLastToken()){
-			return Token.END_OF_EXPRESSION;
-		}else if(isOperator()){
-			return Token.getOperator(value.charAt(index++));
-		}else if(isDigit()){
-			String num = "";
-			while(!isOperator()){
-				num += value.charAt(index++);
-				if(isLastToken()) break;
-			}
-			return new Token(num, TokenType.NUMBER);
-		}else if(isLetter()){
-			String val = "";
-			while(!isOperator()){
-				val += value.charAt(index++);
-				if(isLastToken()) break;
-			}
-			return new Token(val, TokenType.VARIABLE);
+		if(isOperator()){
+			return getOperator(nextChar());
+		}
+		if(isDigit()){
+			 return new Token(buildString(), NUMBER);
+		}
+		if(isLetter()){
+			return new Token(buildString(), VARIABLE);
 		}
 		return Token.END_OF_EXPRESSION;
 	}
 	
+	private Character nextChar(){
+		return value.charAt(index++);
+	}
 	
+	private String buildString() {
+		if(isOperator()){
+			return "";
+		}
+		return nextChar() + buildString();
+	}
+
 	private boolean isDigit() {
 		return Character.isDigit(value.charAt(index));
 	}
