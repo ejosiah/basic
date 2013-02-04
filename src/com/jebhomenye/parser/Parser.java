@@ -34,12 +34,12 @@ public final class Parser {
 	public static double evaluate(String expression){
 		Expression expr = new Expression(expression);
 		
-		Token token = expr.getNextToken();
+		Token token = expr.peek();
 		if(token.equals(END_OF_EXPRESSION)){
 			throw new ParserException(SyntaxErrorCode.NO_EXPRESSION);
 		}
 		
-		double result = addSubtract(expr, token);
+		double result = addSubtract(expr);
 		
 		token = expr.getNextToken();
 		if(!token.equals(END_OF_EXPRESSION)){
@@ -49,13 +49,13 @@ public final class Parser {
 		return result;
 	}
 
-	private static double addSubtract(Expression expression, Token token) {
-		double result = multiplyDivide(expression, token);
-		token = expression.peek();
+	private static double addSubtract(Expression expression) {
+		double result = multiplyDivide(expression);
+		Token token = expression.peek();
 		
 		while(token.equals(PLUS) || token.equals(MINUS)){
 			token = expression.getNextToken();
-			double partialResult = multiplyDivide(expression, token);
+			double partialResult = multiplyDivide(expression);
 			switch(token.value.charAt(0)){
 			case '-': 
 				result -= partialResult;
@@ -66,23 +66,27 @@ public final class Parser {
 			default:
 				throw new RuntimeException("Illegal Argument: " + token);
 			}
+			token = expression.peek();
 		}
 		return result;
 	}
 	
 
-	private static double multiplyDivide(Expression expression, Token token) {
-		double result = exponent(expression, token);
-		token = expression.getNextToken();
+	private static double multiplyDivide(Expression expression) {
+		double result = exponent(expression);
+		Token token = expression.peek();
 		
 		while(token.equals(TIMES) || token.equals(DIVIDE) || token.equals(MODULUS)){
 			token = expression.getNextToken();
-			double partialResult = exponent(expression, token);
+			double partialResult = exponent(expression);
 			switch(token.value.charAt(0)){
 			case '*':
 				result *= partialResult;
 				break;
 			case '/':
+				if(partialResult == 0.0){
+					throw new ParserException(SyntaxErrorCode.DIVIDE_BY_ZERO);
+				}
 				result /= partialResult;
 				break;
 			case '%':
@@ -91,16 +95,17 @@ public final class Parser {
 			default:
 				throw new IllegalArgumentException("Invalid opratoin: " + token);
 			}
+			token = expression.peek();
 		}
 		return result;
 	}
 
-	private static double exponent(Expression expression, Token token) {
-		double result = evalUnary(expression, token);
-		token = expression.getNextToken();
+	private static double exponent(Expression expression) {
+		double result = evalUnary(expression);
+		Token token = expression.peek();
 		if(token.equals(EXPONENT)){
 			token = expression.getNextToken();
-			double power = exponent(expression, token);
+			double power = exponent(expression);
 			if(power == 0.0){
 				return 1.0;
 			}else{
@@ -110,33 +115,35 @@ public final class Parser {
 		return result;
 	}
 
-	private static double evalUnary(Expression expression, Token token) {
+	private static double evalUnary(Expression expression) {
 		String op = "";
+		Token token = expression.peek();
 		if(token.equals(PLUS) || token.equals(MINUS)){
-			op = token.value;
-			token = expression.getNextToken();
+			op = expression.getNextToken().value;
 		}
-		double result = evalParenthesis(expression, token);
+		double result = evalParenthesis(expression);
 		return op.equals("-") ? -result : result;
 	}
 
-	private static double evalParenthesis(Expression expression, Token token) {
+	private static double evalParenthesis(Expression expression) {
 		double result = 0.0;
+		Token token = expression.peek();
 		if(token.equals(LEFT_BRAKET)){
 			token = expression.getNextToken();
-			result = addSubtract(expression, token);
+			result = addSubtract(expression);
 			token = expression.getNextToken();
 			if(!token.equals(RIGHT_BRAKET)){
 				throw new ParserException(SyntaxErrorCode.UNBALANCED_PERENTHESIS);
 			}
 		}else{
-			result = evalNumber(expression, token);
+			result = evalNumber(expression);
 		}
 		return result;
 	}
 
-	private static double evalNumber(Expression expression, Token token) {
+	private static double evalNumber(Expression expression) {
 		double result = 0.0;
+		Token token = expression.getNextToken();
 		switch(token.tokenType){
 		case NUMBER:
 			try{

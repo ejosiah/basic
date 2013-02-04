@@ -76,6 +76,7 @@ public class Expression {
 	}
 	
 	public String toString(){
+		int idx = isLastToken() ? value.length() - 1 : index;
 		return String.format("{%s}, position[%s]=%s", value, index, value.charAt(index));
 	}
 }
