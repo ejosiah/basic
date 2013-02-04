@@ -26,5 +26,23 @@ public class ExpressionTest {
 		assertEquals(new Token("2", NUMBER), expression.getNextToken());
 		assertEquals(END_OF_EXPRESSION, expression.getNextToken());
 	}
+	
+	@Test
+	public void testPeek(){
+		Expression expression = new Expression("A + 100 - (B * C) / 2 ");
+		
+		Token expected = new Token("A", VARIABLE);
+		assertEquals(expected, expression.peek());
+		assertEquals(0, expression.index);
+		
+		assertEquals(expected, expression.getNextToken());
+		assertEquals(PLUS, expression.peek());
+		assertEquals(1, expression.index);
+		
+		assertEquals(PLUS, expression.getNextToken());
+		assertEquals(new Token("100", NUMBER), expression.peek());
+		assertEquals(3, expression.index);
+		
+	}
 
 }

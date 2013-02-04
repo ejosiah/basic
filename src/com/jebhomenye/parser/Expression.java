@@ -5,7 +5,7 @@ import static com.jebhomenye.parser.Token.TokenType.*;
 import static com.jebhomenye.parser.Token.*;
 
 public class Expression {
-	private int index;
+	int index;
 	final private String value;
 	
 	public Expression(String value){
@@ -32,12 +32,19 @@ public class Expression {
 		return Token.END_OF_EXPRESSION;
 	}
 	
+	public Token peek(){
+		int currentIndex = index;
+		Token token = getNextToken();
+		index = currentIndex;
+		return token;
+	}
+	
 	private Character nextChar(){
 		return value.charAt(index++);
 	}
 	
 	private String buildString() {
-		if(isOperator()){
+		if(isLastToken() || isOperator()){
 			return "";
 		}
 		return nextChar() + buildString();
@@ -66,5 +73,9 @@ public class Expression {
 	
 	public void reset(){
 		index = 0;
+	}
+	
+	public String toString(){
+		return String.format("{%s}, position[%s]=%s", value, index, value.charAt(index));
 	}
 }
